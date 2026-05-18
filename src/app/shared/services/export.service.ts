@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import ExcelJS from 'exceljs';
 
 export type ExportColumn<T> = {
   header: string;
@@ -32,6 +31,7 @@ export class ExportService {
   }
 
   private async exportXlsx<T>(fileName: string, columns: ExportColumn<T>[], rows: T[]) {
+    const ExcelJS = await import('exceljs');
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Dados');
 

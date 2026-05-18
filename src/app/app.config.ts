@@ -10,7 +10,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideHttpClient(withFetch()),
-    { provide: API_BASE_URL, useValue: 'https://localhost:7226/api/' },
+    { provide: API_BASE_URL, useValue: 'http://localhost:8080/api/' },
     provideClientHydration(withEventReplay())
   ]
 };

@@ -30,6 +30,17 @@
             ],
             "server": "src/main.server.ts",
             "outputMode": "server",
+            "allowedCommonJsDependencies": [
+              "archiver",
+              "dayjs",
+              "exceljs",
+              "fast-csv",
+              "jszip",
+              "readable-stream",
+              "saxes",
+              "tmp",
+              "unzipper"
+            ],
             "ssr": {
               "entry": "src/server.ts"
             }
