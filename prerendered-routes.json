@@ -1,0 +1,8 @@
+{
+  "routes": {
+    "/health-front": {},
+    "/health-front/dashboard": {},
+    "/health-front/exams": {},
+    "/health-front/patients": {}
+  }
+}
