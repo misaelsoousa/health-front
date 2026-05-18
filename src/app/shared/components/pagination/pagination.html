@@ -1,0 +1,40 @@
+@if (totalCount > 0) {
+    <div class="flex flex-col items-start gap-3 px-4 py-4 text-sm text-main-blue/70 md:flex-row md:items-center md:justify-between md:gap-4 md:px-6">
+        <span class="font-semibold">
+            Mostrando {{ rangeStart }} - {{ rangeEnd }} de {{ totalCount }}
+        </span>
+
+        <div class="flex items-center gap-1">
+            <button
+                type="button"
+                class="rounded-md border border-main-blue/20 px-3 py-1 font-semibold text-main-blue transition hover:bg-main-blue hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-main-blue cursor-pointer"
+                [disabled]="page <= 1"
+                (click)="goTo(page - 1)">
+                Anterior
+            </button>
+
+            @for (p of pageNumbers; track p) {
+                <button
+                    type="button"
+                    class="min-w-9 rounded-md border px-3 py-1 font-semibold transition cursor-pointer"
+                    [class.border-main-blue]="p === page"
+                    [class.bg-main-blue]="p === page"
+                    [class.text-white]="p === page"
+                    [class.border-main-blue/20]="p !== page"
+                    [class.text-main-blue]="p !== page"
+                    [class.hover:bg-main-blue/5]="p !== page"
+                    (click)="goTo(p)">
+                    {{ p }}
+                </button>
+            }
+
+            <button
+                type="button"
+                class="rounded-md border border-main-blue/20 px-3 py-1 font-semibold text-main-blue transition hover:bg-main-blue hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-main-blue cursor-pointer"
+                [disabled]="page >= totalPages"
+                (click)="goTo(page + 1)">
+                Próximo
+            </button>
+        </div>
+    </div>
+}

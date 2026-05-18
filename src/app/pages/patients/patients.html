@@ -1,0 +1,360 @@
+<main>
+    <div class="container">
+        <h1 class="text-main-blue text-3xl font-bold">Pacientes</h1>
+        <div class="flex flex-col gap-5">
+            <div class="flex w-full flex-col gap-3 md:flex-row md:justify-end">
+                <app-export-menu
+                    [isExporting]="isExporting"
+                    (formatSelected)="exportPatients($event)">
+                </app-export-menu>
+                <button
+                    type="button"
+                    class="border-2 rounded-full py-2 px-3 bg-main-blue border-main-blue text-white font-semibold flex items-center justify-center gap-3 cursor-pointer hover:bg-dark-blue transition duration-300"
+                    (click)="openCreatePatientModal()"><app-plus-icon
+                        class="text-white"></app-plus-icon>Novo Registro</button>
+            </div>
+            <form class="bg-main-green px-4 py-4 md:px-6 rounded-xl flex flex-col gap-3 w-full md:flex-row md:flex-wrap" (ngSubmit)="applyFilters()">
+                <div class="flex min-w-[220px] flex-1 flex-col gap-2">
+                    <label class="text-white font-semibold">Nome</label>
+                    <input
+                        type="text"
+                        name="filterName"
+                        placeholder="Buscar por nome"
+                        class="bg-white rounded-lg py-3 px-4 w-full outline-none transition focus:border-main-green min-w-0"
+                        [(ngModel)]="filters.name">
+                </div>
+                <div class="flex min-w-[220px] flex-1 flex-col gap-2">
+                    <label class="text-white font-semibold">Documento</label>
+                    <input
+                        type="text"
+                        name="filterCpf"
+                        placeholder="000.000.000-00"
+                        [maskito]="cpfMask"
+                        class="bg-white rounded-lg py-3 px-4 w-full outline-none transition focus:border-main-green min-w-0"
+                        [(ngModel)]="filters.cpf">
+                </div>
+                <div class="flex min-w-[220px] flex-1 flex-col gap-2">
+                    <label class="text-white font-semibold">Contato</label>
+                    <input
+                        type="text"
+                        name="filterPhone"
+                        placeholder="(00) 00000-0000"
+                        [maskito]="phoneMask"
+                        class="bg-white rounded-lg py-3 px-4 w-full outline-none transition focus:border-main-green min-w-0"
+                        [(ngModel)]="filters.phone">
+                </div>
+                <div class="flex min-w-[180px] flex-1 flex-col gap-2">
+                    <label class="text-white font-semibold">Status</label>
+                    <div class="relative">
+                        <select
+                            name="filterActive"
+                            class="bg-white rounded-lg py-3 pl-4 pr-10 w-full outline-none appearance-none transition focus:border-main-green min-w-0"
+                            [(ngModel)]="filters.active">
+                            <option value="">Todos</option>
+                            <option value="true">Ativo</option>
+                            <option value="false">Inativo</option>
+                        </select>
+                        <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-main-blue/60">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="m6 9 6 6 6-6"></path>
+                            </svg>
+                        </span>
+                    </div>
+                </div>
+                <div class="flex min-w-[260px] flex-[1.25_1_260px] flex-col gap-3 md:flex-row md:items-end">
+                    <button type="submit"
+                        class="text-white font-semibold h-fit rounded-full py-3 px-5 flex items-center justify-center bg-main-blue gap-2 hover:bg-dark-blue transition duration-300 cursor-pointer whitespace-nowrap"><app-filter-icon></app-filter-icon>Filtrar
+                        Pacientes</button>
+                    <button
+                        type="button"
+                        class="text-white font-semibold h-fit rounded-full py-3 px-5 gap-3 flex items-center justify-center bg-main-green border border-white/40 hover:bg-white transition duration-300 hover:text-main-green cursor-pointer whitespace-nowrap"
+                        (click)="clearFilters()">
+                        <app-close-icon class="group-hover:text-main-green"></app-close-icon>Limpar</button>
+                </div>
+            </form>
+            @if (patientLoadError) {
+                <div class="flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+                    <span class="font-semibold">{{ patientLoadError }}</span>
+                    <button
+                        type="button"
+                        class="rounded-full bg-red-600 px-4 py-2 font-semibold text-white transition duration-300 hover:bg-red-700 cursor-pointer"
+                        (click)="retryLoadPatients()">
+                        Tentar novamente
+                    </button>
+                </div>
+            }
+            <div class="bg-white rounded-xl drop-shadow-black shadow-2xl">
+                <div class="overflow-x-auto scrollbar-thin">
+                    <table class="w-full min-w-[1600px] rounded-xl table-fixed whitespace-nowrap">
+                    <thead class="text-left text-main-blue font-semibold bg-main-blue/5">
+                        <tr>
+                            <th class="py-3 w-1/5 pl-6 whitespace-nowrap">Nome</th>
+                            <th class="py-3 w-1/5 whitespace-nowrap">Documento</th>
+                            <th class="py-3 w-1/5 whitespace-nowrap">Contato</th>
+                            <th class="py-3 w-1/5 whitespace-nowrap">Status</th>
+                            <th class="py-3 w-1/5 pr-6 whitespace-nowrap">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (isLoadingPatients) {
+                            @for (_ of skeletonRows; track $index) {
+                                <tr class="border-t border-black/10">
+                                    <td class="py-2 w-1/5 pl-6 whitespace-nowrap">
+                                        <ngx-skeleton-loader count="1" appearance="line" [theme]="{ height: '16px', width: '70%', borderRadius: '6px', marginBottom: '0' }"></ngx-skeleton-loader>
+                                    </td>
+                                    <td class="py-2 w-1/5 whitespace-nowrap">
+                                        <ngx-skeleton-loader count="1" appearance="line" [theme]="{ height: '16px', width: '60%', borderRadius: '6px', marginBottom: '0' }"></ngx-skeleton-loader>
+                                    </td>
+                                    <td class="py-2 w-1/5 whitespace-nowrap">
+                                        <ngx-skeleton-loader count="1" appearance="line" [theme]="{ height: '16px', width: '55%', borderRadius: '6px', marginBottom: '0' }"></ngx-skeleton-loader>
+                                    </td>
+                                    <td class="py-2 w-1/5 whitespace-nowrap">
+                                        <ngx-skeleton-loader count="1" appearance="line" [theme]="{ height: '16px', width: '40%', borderRadius: '6px', marginBottom: '0' }"></ngx-skeleton-loader>
+                                    </td>
+                                    <td class="py-2 w-2/6 pr-6 whitespace-nowrap">
+                                        <ngx-skeleton-loader count="1" appearance="line" [theme]="{ height: '36px', width: '200px', borderRadius: '9999px', marginBottom: '0' }"></ngx-skeleton-loader>
+                                    </td>
+                                </tr>
+                            }
+                        } @else {
+                            @for (patient of patients; track patient.id ?? patient.cpf ?? patient.phone ?? $index) {
+                                <tr class="border-t border-black/10 hover:bg-main-blue/5">
+                                    <td class="py-2 w-1/5 pl-6 whitespace-nowrap">
+                                        <div class="truncate" [title]="patient.name ?? ''">{{ patient.name ?? '-' }}</div>
+                                    </td>
+                                    <td class="py-2 w-1/5 whitespace-nowrap">{{ formatCpf(patient.cpf) }}</td>
+                                    <td class="py-2 w-1/5 whitespace-nowrap">{{ formatPhone(patient.phone ?? patient.telefone ?? patient.contato) }}</td>
+                                    <td class="py-2 w-1/5 whitespace-nowrap">
+                                        <span
+                                            class="inline-flex rounded-full px-3 py-1 text-xs font-semibold"
+                                            [class.bg-main-green/10]="isActiveStatus(patient.status)"
+                                            [class.text-main-green]="isActiveStatus(patient.status)"
+                                            [class.bg-red-50]="!isActiveStatus(patient.status)"
+                                            [class.text-red-600]="!isActiveStatus(patient.status)">
+                                            {{ getStatusLabel(patient.status) }}
+                                        </span>
+                                    </td>
+                                    <td class="py-2 w-2/6 pr-6 whitespace-nowrap">
+                                        <div class="flex">
+                                            <button
+                                                type="button"
+                                                class="bg-main-blue py-2 px-4 flex text-white rounded-full items-center gap-3 cursor-pointer hover:bg-dark-blue transition duration-300 w-fit disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
+                                                [disabled]="!patient.cpf"
+                                                (click)="openPatientDetails(patient.cpf)">
+                                                <app-search-icon></app-search-icon>
+                                                Detalhes do Paciente
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            } @empty {
+                                <tr class="border-t border-black/10">
+                                    <td colspan="5" class="py-6 px-6 text-center text-main-blue/60">
+                                        Nenhum paciente encontrado.
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                    </table>
+                </div>
+
+                @if (!isLoadingPatients) {
+                    <app-pagination
+                        [page]="page"
+                        [pageSize]="pageSize"
+                        [totalCount]="totalCount"
+                        [totalPages]="totalPages"
+                        (pageChange)="goToPage($event)">
+                    </app-pagination>
+                }
+            </div>
+        </div>
+    </div>
+</main>
+
+@if (isPatientModalOpen) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" (click)="closePatientModal()">
+        <section class="w-full max-w-3xl overflow-hidden rounded-xl bg-white shadow-2xl" (click)="$event.stopPropagation()">
+            <header class="flex items-center justify-between bg-main-green px-6 py-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white">Detalhes do Paciente</h2>
+                    <p class="text-sm font-semibold text-white/80">{{ patientDetailsForm.cpf || 'CPF nao informado' }}</p>
+                </div>
+                <button
+                    type="button"
+                    class="flex h-10 w-10 items-center justify-center rounded-full border border-white/40 text-white transition duration-300 hover:bg-white hover:text-main-green cursor-pointer"
+                    (click)="closePatientModal()">
+                    <app-close-icon></app-close-icon>
+                </button>
+            </header>
+
+            @if (isPatientDetailsLoading) {
+                <div class="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
+                    @for (_ of skeletonFormFields; track $index) {
+                        <div class="flex flex-col gap-2">
+                            <ngx-skeleton-loader count="1" appearance="line" [theme]="{ height: '18px', width: '40%', marginBottom: '0' }"></ngx-skeleton-loader>
+                            <ngx-skeleton-loader count="1" appearance="line" [theme]="{ height: '46px', borderRadius: '8px', marginBottom: '0' }"></ngx-skeleton-loader>
+                        </div>
+                    }
+                </div>
+            } @else {
+                <form #patientForm="ngForm" class="flex flex-col gap-5 p-6" (ngSubmit)="savePatientChanges()">
+                    @if (patientDetailsError) {
+                        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
+                            {{ patientDetailsError }}
+                        </div>
+                    }
+
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div class="flex flex-col gap-2">
+                            <label class="font-semibold text-main-blue">Nome</label>
+                            <input
+                                type="text"
+                                name="patientName"
+                                required
+                                [maxlength]="nameMaxLength"
+                                #patientNameField="ngModel"
+                                class="rounded-lg border border-main-blue/10 bg-white px-4 py-3 outline-none transition focus:border-main-green"
+                                [(ngModel)]="patientDetailsForm.name">
+                            @if (patientNameField.touched && patientNameField.errors?.['required']) {
+                                <span class="text-sm font-semibold text-red-600">Nome é obrigatório.</span>
+                            }
+                            @if (patientNameField.errors?.['maxlength']) {
+                                <span class="text-sm font-semibold text-red-600">Máximo de {{ nameMaxLength }} caracteres.</span>
+                            }
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <label class="font-semibold text-main-blue">CPF</label>
+                            <input
+                                type="text"
+                                name="patientCpf"
+                                required
+                                appCpfValidator
+                                [maskito]="cpfMask"
+                                placeholder="000.000.000-00"
+                                #patientCpfField="ngModel"
+                                class="rounded-lg border border-main-blue/10 bg-white px-4 py-3 outline-none transition focus:border-main-green"
+                                [(ngModel)]="patientDetailsForm.cpf">
+                            @if (patientCpfField.touched && patientCpfField.errors?.['required']) {
+                                <span class="text-sm font-semibold text-red-600">CPF é obrigatório.</span>
+                            }
+                            @if (patientCpfField.touched && patientCpfField.errors?.['cpfInvalid']) {
+                                <span class="text-sm font-semibold text-red-600">CPF inválido.</span>
+                            }
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <label class="font-semibold text-main-blue">Contato</label>
+                            <input
+                                type="text"
+                                name="patientPhone"
+                                required
+                                pattern="^\(\d{2}\) \d{5}-\d{4}$"
+                                [maskito]="phoneMask"
+                                placeholder="(00) 00000-0000"
+                                #patientPhoneField="ngModel"
+                                class="rounded-lg border border-main-blue/10 bg-white px-4 py-3 outline-none transition focus:border-main-green"
+                                [(ngModel)]="patientDetailsForm.phone">
+                            @if (patientPhoneField.touched && patientPhoneField.errors?.['required']) {
+                                <span class="text-sm font-semibold text-red-600">Telefone é obrigatório.</span>
+                            }
+                            @if (patientPhoneField.touched && patientPhoneField.errors?.['pattern']) {
+                                <span class="text-sm font-semibold text-red-600">Telefone inválido.</span>
+                            }
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <label class="font-semibold text-main-blue">Data de nascimento</label>
+                            <input
+                                type="date"
+                                name="patientBirthDate"
+                                class="rounded-lg border border-main-blue/10 bg-white px-4 py-3 outline-none transition focus:border-main-green"
+                                [(ngModel)]="patientDetailsForm.birthDate">
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <label class="font-semibold text-main-blue">Status</label>
+                            <div class="relative">
+                                <select
+                                    name="patientStatus"
+                                    class="w-full rounded-lg border border-main-blue/10 bg-white px-4 py-3 pr-10 outline-none appearance-none transition focus:border-main-green"
+                                    [(ngModel)]="patientDetailsForm.status">
+                                    <option value="">Selecione um status</option>
+                                    <option value="A">Ativo</option>
+                                    <option value="I">Inativo</option>
+                                </select>
+                                <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-main-blue/60">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="m6 9 6 6 6-6"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-3 border-t border-black/10 pt-5 md:flex-row md:justify-between">
+                        <button
+                            type="button"
+                            class="rounded-full border border-red-200 px-5 py-3 font-semibold text-red-600 transition duration-300 hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                            [disabled]="!patientDetailsForm.id"
+                            (click)="openDeletePatientModal()">
+                            Excluir
+                        </button>
+
+                        <div class="flex flex-col gap-3 md:flex-row">
+                            <button
+                                type="button"
+                                class="rounded-full border border-main-green px-5 py-3 font-semibold text-main-green transition duration-300 hover:bg-main-green hover:text-white cursor-pointer"
+                                (click)="closePatientModal()">
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                class="rounded-full bg-main-blue px-5 py-3 font-semibold text-white transition duration-300 hover:bg-dark-blue disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                                [disabled]="!patientDetailsForm.id || isUpdatingPatient || patientForm.invalid">
+                                {{ isUpdatingPatient ? 'Salvando...' : 'Salvar Alterações' }}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            }
+        </section>
+    </div>
+}
+
+@if (isCreatePatientModalOpen) {
+    <app-create-patient-modal
+        [isSubmitting]="isCreatingPatient"
+        [error]="createPatientError"
+        (close)="closeCreatePatientModal()"
+        (createPatient)="submitCreatePatient($event)">
+    </app-create-patient-modal>
+}
+
+@if (isDeletePatientModalOpen) {
+    <app-confirm-delete-patient-modal
+        [patientName]="patientDetailsForm.name"
+        [patientCpf]="patientDetailsForm.cpf"
+        [isDeleting]="isDeletingPatient"
+        [error]="deletePatientError"
+        (close)="closeDeletePatientModal()"
+        (confirmDelete)="confirmDeletePatient()">
+    </app-confirm-delete-patient-modal>
+}
+
+@if (toast; as currentToast) {
+    <div
+        class="toast fixed right-6 bottom-6 z-[70] min-w-[360px] max-w-[460px] overflow-hidden rounded-md px-5 py-4 pb-5 font-semibold text-white shadow-2xl"
+        [class.bg-main-green]="currentToast.type === 'success'"
+        [class.bg-red-600]="currentToast.type === 'error'">
+        <div class="flex items-center gap-3">
+            <span class="h-3 w-3 rounded-full bg-white/80"></span>
+            {{ currentToast.message }}
+        </div>
+        <span class="toast-timer absolute bottom-0 left-0 h-1 w-full bg-white/70"></span>
+    </div>
+}
+
+

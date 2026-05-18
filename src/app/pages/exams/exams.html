@@ -1,0 +1,330 @@
+<main>
+    <div class="container">
+        <h1 class="text-main-blue text-3xl font-bold">Exames</h1>
+        <div class="flex flex-col gap-5">
+            <div class="flex w-full flex-col gap-3 md:flex-row md:justify-end">
+                <app-export-menu
+                    [isExporting]="isExporting"
+                    (formatSelected)="exportExams($event)">
+                </app-export-menu>
+                <button
+                    type="button"
+                    class="border-2 rounded-full py-2 px-3 bg-main-blue border-main-blue text-white font-semibold flex items-center justify-center gap-3 cursor-pointer hover:bg-dark-blue transition duration-300"
+                    (click)="openCreateExamModal()"><app-plus-icon
+                        class="text-white"></app-plus-icon>Novo Registro</button>
+            </div>
+            <form class="bg-main-green px-4 py-4 md:px-6 rounded-xl flex flex-col gap-3 w-full xl:flex-row xl:flex-wrap" (ngSubmit)="applyFilters()">
+                <div class="flex flex-col w-full gap-3 xl:flex-row xl:flex-nowrap">
+                    <div class="flex min-w-[220px] flex-1 flex-col gap-2">
+                        <label class="text-white font-semibold">Nome do paciente</label>
+                    <input
+                        type="text"
+                        name="filterPatientName"
+                        placeholder="Buscar por nome"
+                        class="bg-white rounded-lg py-3 px-4 w-full outline-none transition focus:border-main-green min-w-0"
+                        [(ngModel)]="filters.patientName">
+                    </div>
+                    <div class="flex min-w-[180px] flex-1 flex-col gap-2">
+                        <label class="text-white font-semibold">Data inicial</label>
+                    <input
+                        type="date"
+                        name="filterStartDate"
+                        class="bg-white rounded-lg py-3 px-4 w-full outline-none transition focus:border-main-green min-w-0"
+                        [(ngModel)]="filters.startDate">
+                    </div>
+                    <div class="flex min-w-[180px] flex-1 flex-col gap-2">
+                        <label class="text-white font-semibold">Data final</label>
+                    <input
+                        type="date"
+                        name="filterEndDate"
+                        class="bg-white rounded-lg py-3 px-4 w-full outline-none transition focus:border-main-green min-w-0"
+                        [(ngModel)]="filters.endDate">
+                    </div>
+                </div>
+                <div class="flex min-w-[320px] flex-1 flex-col gap-2">
+                    <label class="text-white font-semibold">Modalidades</label>
+                    <div class="flex flex-wrap gap-2">
+                        @for (modality of modalityCodes; track modality) {
+                            <button
+                                type="button"
+                                class="rounded-full border px-4 py-2 text-sm font-semibold transition cursor-pointer"
+                                [class.bg-white]="isModalitySelected(modality)"
+                                [class.text-main-green]="isModalitySelected(modality)"
+                                [class.border-white]="isModalitySelected(modality)"
+                                [class.text-white]="!isModalitySelected(modality)"
+                                [class.border-white/50]="!isModalitySelected(modality)"
+                                [class.hover:bg-white/10]="!isModalitySelected(modality)"
+                                (click)="toggleModality(modality)">
+                                {{ modality }}
+                            </button>
+                        }
+                    </div>
+                </div>
+                <div class="flex min-w-[260px] flex-[1.25_1_260px] flex-col gap-3 md:flex-row md:justify-end">
+                    <button type="submit"
+                        class="text-white font-semibold h-fit rounded-full py-3 px-5 flex items-center justify-center bg-main-blue gap-2 hover:bg-dark-blue transition duration-300 cursor-pointer whitespace-nowrap"><app-filter-icon></app-filter-icon>Filtrar
+                        Exames</button>
+                    <button
+                        type="button"
+                        class="text-white font-semibold h-fit rounded-full py-3 px-5 gap-3 flex items-center justify-center bg-main-green border border-white/40 hover:bg-white transition duration-300 hover:text-main-green cursor-pointer cursor-pointer whitespace-nowrap"
+                        (click)="clearFilters()">
+                        <app-close-icon class="group-hover:text-main-green"></app-close-icon>Limpar</button>
+                </div>
+            </form>
+            @if (examLoadError) {
+                <div class="flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+                    <span class="font-semibold">{{ examLoadError }}</span>
+                    <button
+                        type="button"
+                        class="rounded-full bg-red-600 px-4 py-2 font-semibold text-white transition duration-300 hover:bg-red-700 cursor-pointer"
+                        (click)="retryLoadExams()">
+                        Tentar novamente
+                    </button>
+                </div>
+            }
+            <div class="bg-white rounded-xl drop-shadow-black shadow-2xl">
+                <div class="overflow-x-auto scrollbar-thin">
+                    <table class="w-full min-w-[1600px] rounded-xl table-fixed whitespace-nowrap">
+                    <thead class="text-left text-main-blue font-semibold bg-main-blue/5">
+                        <tr>
+                            <th class="py-3 w-1/5 pl-6 whitespace-nowrap">Paciente</th>
+                            <th class="py-3 w-1/5 whitespace-nowrap">Modalidade</th>
+                            <th class="py-3 w-1/5 whitespace-nowrap">Data do exame</th>
+                            <th class="py-3 w-1/5 whitespace-nowrap">Ultima atualização</th>
+                            <th class="py-3 w-1/5 pr-6 whitespace-nowrap">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (isLoadingExams) {
+                            @for (_ of skeletonRows; track $index) {
+                                <tr class="border-t border-black/10">
+                                    <td class="py-2 w-1/5 pl-6 whitespace-nowrap">
+                                        <ngx-skeleton-loader count="1" appearance="line" [theme]="{ height: '16px', width: '70%', borderRadius: '6px', marginBottom: '0' }"></ngx-skeleton-loader>
+                                    </td>
+                                    <td class="py-2 w-1/5 whitespace-nowrap">
+                                        <ngx-skeleton-loader count="1" appearance="line" [theme]="{ height: '16px', width: '55%', borderRadius: '6px', marginBottom: '0' }"></ngx-skeleton-loader>
+                                    </td>
+                                    <td class="py-2 w-1/5 whitespace-nowrap">
+                                        <ngx-skeleton-loader count="1" appearance="line" [theme]="{ height: '16px', width: '45%', borderRadius: '6px', marginBottom: '0' }"></ngx-skeleton-loader>
+                                    </td>
+                                    <td class="py-2 w-1/5 whitespace-nowrap">
+                                        <ngx-skeleton-loader count="1" appearance="line" [theme]="{ height: '16px', width: '60%', borderRadius: '6px', marginBottom: '0' }"></ngx-skeleton-loader>
+                                    </td>
+                                    <td class="py-2 w-2/6 pr-6 whitespace-nowrap">
+                                        <ngx-skeleton-loader count="1" appearance="line" [theme]="{ height: '36px', width: '180px', borderRadius: '9999px', marginBottom: '0' }"></ngx-skeleton-loader>
+                                    </td>
+                                </tr>
+                            }
+                        } @else {
+                            @for (exam of exams; track exam.id ?? exam.patientName ?? exam.modality ?? exam.examDate ?? exam.updatedAt ?? $index) {
+                                <tr class="border-t border-black/10 hover:bg-main-blue/5">
+                                    <td class="py-2 w-1/5 pl-6 whitespace-nowrap">
+                                        <div class="truncate" [title]="exam.patientName ?? ''">{{ exam.patientName ?? '-' }}</div>
+                                    </td>
+                                    <td class="py-2 w-1/5 whitespace-nowrap">{{ getModalityLabel(exam.modality) }}</td>
+                                    <td class="py-2 w-1/5 whitespace-nowrap">{{ (exam.examDate | date:'dd/MM/yyyy') ?? '-' }}</td>
+                                    <td class="py-2 w-1/5 whitespace-nowrap">{{ (exam.updatedAt | date:'dd/MM/yyyy HH:mm') ?? '-' }}</td>
+                                    <td class="py-2 w-2/6 pr-6 whitespace-nowrap">
+                                        <div class="flex">
+                                            <button
+                                                type="button"
+                                                class="bg-main-blue py-2 px-4 flex text-white rounded-full items-center gap-3 cursor-pointer hover:bg-dark-blue transition duration-300 w-fit whitespace-nowrap"
+                                                (click)="openExamDetails(exam)">
+                                                <app-search-icon></app-search-icon>
+                                                Detalhes do Exame
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            } @empty {
+                                <tr class="border-t border-black/10">
+                                    <td colspan="5" class="py-6 px-6 text-center text-main-blue/60">
+                                        Nenhum exame encontrado.
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                    </table>
+                </div>
+
+                @if (!isLoadingExams) {
+                    <app-pagination
+                        [page]="page"
+                        [pageSize]="pageSize"
+                        [totalCount]="totalCount"
+                        [totalPages]="totalPages"
+                        (pageChange)="goToPage($event)">
+                    </app-pagination>
+                }
+            </div>
+        </div>
+    </div>
+</main>
+
+@if (isExamModalOpen) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" (click)="closeExamModal()">
+        <section class="w-full max-w-3xl overflow-hidden rounded-xl bg-white shadow-2xl" (click)="$event.stopPropagation()">
+            <header class="flex items-center justify-between bg-main-green px-6 py-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white">Detalhes do Exame</h2>
+                    <p class="text-sm font-semibold text-white/80">
+                        {{ examDetailsForm.patientName || 'Paciente não informado' }}
+                        @if (examDetailsForm.patientCpf) {
+                            <span class="text-white/70">- {{ examDetailsForm.patientCpf }}</span>
+                        }
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    class="flex h-10 w-10 items-center justify-center rounded-full border border-white/40 text-white transition duration-300 hover:bg-white hover:text-main-green cursor-pointer"
+                    (click)="closeExamModal()">
+                    <app-close-icon></app-close-icon>
+                </button>
+            </header>
+
+            @if (isExamDetailsLoading) {
+                <div class="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
+                    @for (_ of skeletonFormFields; track $index) {
+                        <div class="flex flex-col gap-2">
+                            <ngx-skeleton-loader count="1" appearance="line" [theme]="{ height: '18px', width: '40%', marginBottom: '0' }"></ngx-skeleton-loader>
+                            <ngx-skeleton-loader count="1" appearance="line" [theme]="{ height: '46px', borderRadius: '8px', marginBottom: '0' }"></ngx-skeleton-loader>
+                        </div>
+                    }
+                </div>
+            } @else {
+                <form #examForm="ngForm" class="flex flex-col gap-5 p-6" (ngSubmit)="saveExamChanges()">
+                    @if (examDetailsError) {
+                        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
+                            {{ examDetailsError }}
+                        </div>
+                    }
+
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div class="flex flex-col gap-2">
+                            <label class="font-semibold text-main-blue">CPF do paciente</label>
+                            <input
+                                type="text"
+                                name="examPatientCpf"
+                                required
+                                appCpfValidator
+                                readonly
+                                [maskito]="cpfMask"
+                                placeholder="000.000.000-00"
+                                #examCpfField="ngModel"
+                                class="rounded-lg border border-main-blue/10 bg-slate-100 px-4 py-3 outline-none transition focus:border-main-green cursor-not-allowed"
+                                [(ngModel)]="examDetailsForm.patientCpf">
+                            @if (examCpfField.touched && examCpfField.errors?.['required']) {
+                                <span class="text-sm font-semibold text-red-600">CPF é obrigatório.</span>
+                            }
+                            @if (examCpfField.touched && examCpfField.errors?.['cpfInvalid']) {
+                                <span class="text-sm font-semibold text-red-600">CPF inválido.</span>
+                            }
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <label class="font-semibold text-main-blue">Modalidade</label>
+                            <select
+                                name="examModality"
+                                class="rounded-lg border border-main-blue/10 bg-white px-4 py-3 outline-none transition focus:border-main-green"
+                                [(ngModel)]="examDetailsForm.modality">
+                                @for (modality of modalityOptions; track modality.value) {
+                                    <option [ngValue]="modality.value">{{ modality.label }}</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <label class="font-semibold text-main-blue">Descricao</label>
+                            <input
+                                type="text"
+                                name="examDescricao"
+                                required
+                                class="rounded-lg border border-main-blue/10 bg-white px-4 py-3 outline-none transition focus:border-main-green"
+                                [(ngModel)]="examDetailsForm.descricao">
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <label class="font-semibold text-main-blue">Data do exame</label>
+                            <input
+                                type="date"
+                                name="examDate"
+                                class="rounded-lg border border-main-blue/10 bg-white px-4 py-3 outline-none transition focus:border-main-green"
+                                [(ngModel)]="examDetailsForm.examDate">
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <label class="font-semibold text-main-blue">Ultima atualizacao</label>
+                            <input
+                                type="text"
+                                name="examUpdatedAt"
+                                readonly
+                                class="rounded-lg border border-main-blue/10 bg-main-blue/5 px-4 py-3 outline-none"
+                                [value]="(examDetailsForm.updatedAt | date:'dd/MM/yyyy HH:mm') || '-'">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-3 border-t border-black/10 pt-5 md:flex-row md:justify-between">
+                        <button
+                            type="button"
+                            class="rounded-full border border-red-200 px-5 py-3 font-semibold text-red-600 transition duration-300 hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                            [disabled]="!examDetailsForm.id"
+                            (click)="openDeleteExamModal()">
+                            Excluir
+                        </button>
+
+                        <div class="flex flex-col gap-3 md:flex-row">
+                            <button
+                                type="button"
+                                class="rounded-full border border-main-green px-5 py-3 font-semibold text-main-green transition duration-300 hover:bg-main-green hover:text-white cursor-pointer"
+                                (click)="closeExamModal()">
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                class="rounded-full bg-main-blue px-5 py-3 font-semibold text-white transition duration-300 hover:bg-dark-blue disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                                [disabled]="!examDetailsForm.id || isUpdatingExam || examForm.invalid">
+                                {{ isUpdatingExam ? 'Salvando...' : 'Salvar Alterações' }}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            }
+        </section>
+    </div>
+}
+
+@if (isCreateExamModalOpen) {
+    <app-create-exam-modal
+        [isSubmitting]="isCreatingExam"
+        [error]="createExamError"
+        (close)="closeCreateExamModal()"
+        (createExam)="submitCreateExam($event)">
+    </app-create-exam-modal>
+}
+
+@if (isDeleteExamModalOpen) {
+    <app-confirm-delete-exam-modal
+        [patientName]="examDetailsForm.patientName"
+        [patientCpf]="examDetailsForm.patientCpf"
+        [isDeleting]="isDeletingExam"
+        [error]="deleteExamError"
+        (close)="closeDeleteExamModal()"
+        (confirmDelete)="confirmDeleteExam()">
+    </app-confirm-delete-exam-modal>
+}
+
+@if (toast; as currentToast) {
+    <div
+        class="toast fixed right-6 bottom-6 z-[70] min-w-[360px] max-w-[460px] overflow-hidden rounded-md px-5 py-4 pb-5 font-semibold text-white shadow-2xl"
+        [class.bg-main-green]="currentToast.type === 'success'"
+        [class.bg-red-600]="currentToast.type === 'error'">
+        <div class="flex items-center gap-3">
+            <span class="h-3 w-3 rounded-full bg-white/80"></span>
+            {{ currentToast.message }}
+        </div>
+        <span class="toast-timer absolute bottom-0 left-0 h-1 w-full bg-white/70"></span>
+    </div>
+}
+
+

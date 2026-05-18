@@ -1,0 +1,27 @@
+<div class="relative">
+    <button
+        type="button"
+        class="group w-full border rounded-full py-3 px-5 border-main-green text-main-blue font-semibold flex items-center justify-center gap-3 cursor-pointer hover:bg-main-green transition duration-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+        [disabled]="isExporting"
+        (click)="toggle()">
+        <app-link-icon class="text-main-green transition-colors duration-300 group-hover:text-white"></app-link-icon>
+        {{ isExporting ? 'Exportando...' : 'Exportar' }}
+    </button>
+
+    @if (isOpen) {
+        <div class="absolute right-0 z-20 mt-2 w-48 overflow-hidden rounded-xl border border-main-blue/10 bg-white shadow-2xl">
+            <button
+                type="button"
+                class="block w-full px-4 py-3 text-left font-semibold text-main-blue transition hover:bg-main-blue/5 cursor-pointer"
+                (click)="select('csv')">
+                Exportar como CSV
+            </button>
+            <button
+                type="button"
+                class="block w-full border-t border-black/10 px-4 py-3 text-left font-semibold text-main-blue transition hover:bg-main-blue/5 cursor-pointer"
+                (click)="select('xlsx')">
+                Exportar como XLSX
+            </button>
+        </div>
+    }
+</div>

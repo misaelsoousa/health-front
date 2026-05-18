@@ -1,0 +1,49 @@
+<div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4" (click)="close.emit()">
+    <section class="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl" (click)="$event.stopPropagation()">
+        <header class="flex items-center justify-between bg-main-green px-6 py-4">
+            <div>
+                <h2 class="text-xl font-bold text-white">Excluir Paciente</h2>
+                <p class="text-sm font-semibold text-white/80">{{ patientCpf || 'CPF nao informado' }}</p>
+            </div>
+            <button
+                type="button"
+                class="flex h-10 w-10 items-center justify-center rounded-full border border-white/40 text-white transition duration-300 hover:bg-white hover:text-main-green cursor-pointer"
+                (click)="close.emit()">
+                <app-close-icon></app-close-icon>
+            </button>
+        </header>
+
+        <div class="flex flex-col gap-5 p-6">
+            <div class="rounded-xl border border-red-100 bg-red-50 px-4 py-4">
+                <p class="font-semibold text-main-blue">
+                    Tem certeza que deseja excluir este paciente?
+                </p>
+                <p class="mt-1 text-sm text-main-blue/70">
+                    {{ patientName || 'Paciente selecionado' }} sera removido da lista.
+                </p>
+            </div>
+
+            @if (error) {
+                <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
+                    {{ error }}
+                </div>
+            }
+
+            <div class="flex justify-end gap-3 border-t border-black/10 pt-5">
+                <button
+                    type="button"
+                    class="rounded-full border border-main-green px-5 py-3 font-semibold text-main-green transition duration-300 hover:bg-main-green hover:text-white cursor-pointer"
+                    (click)="close.emit()">
+                    Cancelar
+                </button>
+                <button
+                    type="button"
+                    class="rounded-full bg-red-600 px-5 py-3 font-semibold text-white transition duration-300 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                    [disabled]="isDeleting"
+                    (click)="confirmDelete.emit()">
+                    {{ isDeleting ? 'Excluindo...' : 'Excluir' }}
+                </button>
+            </div>
+        </div>
+    </section>
+</div>

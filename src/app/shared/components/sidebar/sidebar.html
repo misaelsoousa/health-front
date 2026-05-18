@@ -1,0 +1,55 @@
+<button
+    type="button"
+    class="fixed top-4 left-4 z-50 flex h-11 w-11 items-center justify-center rounded-lg bg-main-green text-white shadow-lg md:hidden"
+    aria-label="Abrir menu"
+    (click)="open()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+</button>
+
+@if (isOpen) {
+    <div class="fixed inset-0 z-30 bg-black/40 md:hidden" (click)="close()"></div>
+}
+
+<aside
+    class="bg-main-green w-[290px] h-screen p-4 text-white before:content-['']  before:absolute before:top-0 before:right-0 before:w-full before:h-full before:bg-linear-to-l before:from-black/10 before:to-black/0 before:pointer-events-none fixed inset-y-0 left-0 z-40 overflow-y-auto transition-transform duration-300 md:translate-x-0 md:fixed"
+    [class.-translate-x-full]="!isOpen"
+    [class.translate-x-0]="isOpen">
+    <a routerLink="/" class="font-dm-sans py-4 text-4xl font-extrabold tracking-wide uppercase flex justify-center">Health</a>
+    <div class="flex flex-col gap-3">
+        <span class="uppercase text-sm text-light-green font-dm-sans tracking-widest">Admin</span>
+        <ul>
+            <li class="py-3 border-t border-black/15 font-semibold text-lg gap-3 ">
+                <a routerLink="/dashboard"
+                    class="flex items-center gap-2 hover:bg-white/15 hover:gap-3 rounded-lg cursor-pointer transition-all duration-300 p-2"
+                    [ngClass]="{
+                        'bg-white/15': tabActive === 'dashboard'
+                    }">
+                    <app-dashboard-icon />
+                    Dashboard
+                </a>
+            </li>
+            <li class="py-3 border-t border-black/15 font-semibold text-lg gap-3 ">
+                <a routerLink="/patients"
+                    class="flex items-center gap-2 hover:bg-white/15 hover:gap-3 rounded-lg cursor-pointer transition-all duration-300 p-2"
+                    [ngClass]="{
+                        'bg-white/15': tabActive === 'patients'
+                    }">
+                    <app-patients-icon /> Patients
+                </a>
+            </li>
+            <li class="py-3 border-t border-black/15 font-semibold text-lg gap-3 ">
+                <a routerLink="/exams"
+                    class="flex items-center gap-2 hover:bg-white/15 hover:gap-3 rounded-lg cursor-pointer transition-all duration-300 p-2"
+                    [ngClass]="{
+                        'bg-white/15': tabActive === 'exams'
+                    }">
+                    <app-exams-icon /> Exams
+                </a>
+            </li>
+        </ul>
+    </div>
+</aside>

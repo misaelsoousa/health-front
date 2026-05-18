@@ -1,0 +1,36 @@
+@keyframes toast-slide-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  12%,
+  84% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+@keyframes toast-timer {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.toast {
+  animation: toast-slide-fade 3s ease-in-out forwards;
+}
+
+.toast-timer {
+  transform-origin: left;
+  animation: toast-timer 3s linear forwards;
+}
