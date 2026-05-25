@@ -62,6 +62,7 @@ type ExamForm = {
 type UpdateExamRequest = {
   patientCpf: string;
   modality: DicomModalityValue;
+  idempotencyKey: string;
   descricao: string;
   examDate: string;
 };
@@ -325,6 +326,7 @@ export class Exams implements OnInit {
     const payload: UpdateExamRequest = {
       patientCpf: this.examDetailsForm.patientCpf.replace(/\D/g, ''),
       modality: this.examDetailsForm.modality,
+      idempotencyKey: crypto.randomUUID(),
       descricao: this.examDetailsForm.descricao,
       examDate: this.toDateTimeOffset(this.examDetailsForm.examDate),
     };

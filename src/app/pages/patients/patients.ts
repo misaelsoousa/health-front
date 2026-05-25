@@ -475,8 +475,8 @@ export class Patients implements OnInit {
     return {
       id: patient?.id ?? '',
       name: patient?.name ?? patient?.nome ?? '',
-      cpf: patient?.cpf ?? fallbackCpf,
-      phone: patient?.phone ?? patient?.telefone ?? patient?.contato ?? patient?.email ?? '',
+      cpf: this.formatCpf(patient?.cpf ?? fallbackCpf),
+      phone: this.formatPhone(patient?.phone ?? patient?.telefone ?? patient?.contato ?? patient?.email ?? ''),
       birthDate: patient?.birthDate?.slice(0, 10) ?? '',
       status: patient?.status ?? '',
     };
